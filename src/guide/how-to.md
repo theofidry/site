@@ -36,19 +36,19 @@ jobs:
             git fetch;
             CHANGED_FILES=$(git diff origin/$TRAVIS_BRANCH --diff-filter=AM --name-only | grep src/ | paste -sd "," -);
             INFECTION_FILTER="--filter=${CHANGED_FILES} --ignore-msi-with-no-mutations";
-            
+
             echo "CHANGED_FILES=$CHANGED_FILES";
         fi
-        
+
         infection --threads=4 --log-verbosity=none $INFECTION_FILTER
 ```
 
-For each job, Travis CI fetches only tested branch: 
+For each job, Travis CI fetches only tested branch:
 
 ```bash
 git clone --depth=50 --branch=feature/branch
 ```
- 
+
 That's why we need to fetch `$TRAVIS_BRANCH` as well to make a `git diff` possible. Otherwise, you will get an error:
 
 ```bash
@@ -59,7 +59,7 @@ fatal: ambiguous argument 'origin/master': unknown revision or path not in the w
 
 ### Disable Mutator
 
-Mutators can be disabled in a config file - `infection.json.`. Let's say you don't want to mutate `+` to `-`. In order to disable this Mutator, the following config can be used: 
+Mutators can be disabled in a config file - `infection.json.`. Let's say you don't want to mutate `+` to `-`. In order to disable this Mutator, the following config can be used:
 
 ```json
 {
@@ -89,7 +89,7 @@ To disable all Mutators that work with Regular Expressions, we should disable th
 }
 ```
 
-### Disable in particular class or method or line
+### Disable in particular class, method or line
 
 Sometimes you may want to disable Mutator or Profile just for one particular method or class. It's possible with `ignore` setting of Mutators and Profiles with the following syntax:
 
@@ -115,7 +115,7 @@ Sometimes you may want to disable Mutator or Profile just for one particular met
 
 Want to ignore the whole class? `App\Controller\User`
 
-All classes in the namespace: `App\Api\*` 
+All classes in the namespace: `App\Api\*`
 
 All classes `Product` in any namespace: `App\*\Product`
 
@@ -127,5 +127,28 @@ Method by pattern: `App\Api\Product::pr?duc?List`
 
 Line of the code: `App\Api\Product::product::33`
 
-
 Internally, all patterns are passed to [`fnmatch()` PHP function](https://php.net/manual/en/function.fnmatch.php). Please read its documentation to better understand how it works.
+
+### Disable in particular class, method or line for all mutators
+
+```json
+{
+    "mutators": {
+        "global-ignore": [
+            "ignore": [
+                "App\\Controller\\User",
+                "App\\Api\\Product::productList",
+                "App\\Api\\Product::product::33"
+            ]
+        ],
+        "@default": true,
+        "@regex": {
+            "ignore": [
+                "App\\Controller\\User"
+            ]
+        }
+    }
+}
+```
+
+The settings applied to `global-ignore` will be added to _all_ the registered mutators and profiles.
